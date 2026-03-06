@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Panel de Scouting</title>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <!-- Tom Select (buscador en selects) -->
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+  <!-- noUiSlider -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.js"></script>
+
+<style>
+    body {
+        font-family: Arial;
+        background-color: #0f172a;
+        color: white;
+        margin: 0;
+    }
+
+    header {
+        background-color: #1e293b;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        padding-left: 20px;
+        font-weight: bold;
+        font-size: 18px;
+        color: #ffd50d;
+    }
+
+    h2 {
+        padding-left: 20px;
+    }
+
+    /* ===== FILTRO MINUTOS GENERAL ===== */
+
+    .filtro-minutos {
+        margin: 20px;
+        padding: 15px;
+        background-color: #1e293b;
+        border-radius: 6px;
+        border: 1px solid #334155;
+        width: 350px;
+    }
+
+    .valores-minutos {
+        margin: 10px 0;
+        font-size: 13px;
+    }
+
+    #sliderMinutos {
+        margin-top: 15px;
+    }
+
+    /* Slider estilo */
+    .noUi-connect {
+        background: #ffd50d;
+    }
+
+    .noUi-handle {
+        background: #1e293b;
+        border: 2px solid #ffd50d;
+        box-shadow: none;
+    }
+
+/* ===== BARRA HORIZONTAL RADAR ===== */
+/* Dropdown de TomSelect por encima de todo */
+.barra-radar {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin: 20px;
+    padding: 15px 20px;
+    background-color: #111827;
+    border: 1px solid #334155;
+    border-radius: 8px;
+
+    flex-wrap: nowrap;        /* evita que bajen */
+    overflow-x: auto;         /* si no entra, aparece scroll horizontal */
+}
+
+/* Cada bloque dentro de la barra */
+.filtro-radar-box {
+    background-color: #1e293b;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #334155;
+    width: 220px;
+
+    flex: 0 0 220px;   /* 👈 esto es la clave */
+}
+
+/* Labels blancos */
+.filtro-radar-box label {
+    color: white;
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+/* Selects */
+.filtro-radar-box select {
+    width: 100%;
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid #334155;
+    background-color: #0f172a;
+    color: white;
+    appearance: none;
+}
+
+/* Opciones */
+.filtro-radar-box select option {
+    background-color: #0f172a;
+    color: white;
+}
+
+/* Slider dentro del bloque */
+#sliderRadarMinutos {
+    margin-top: 8px;
+}
+
+/* TomSelect oscuro sin fondo amarillo */
+
+.ts-control {
+    background-color: #0f172a !important;
+    border: 1px solid #334155 !important;
+    color: white !important;
+}
+
+.ts-control .item {
+    background: transparent !important;
+    color: white !important;
+}
+
+
+    /* ===== TOM SELECT DARK (SIN FONDO AMARILLO) ===== */
+
+    .ts-control {
+        background-color: #0f172a !important;
+        border: 1px solid #334155 !important;
+        color: white !important;
+    }
+
+    .ts-control .item {
+        background: transparent !important;
+        color: white !important;
+    }
+
+    /* ===== TABLA ===== */
+
+    .contenedor-tabla {
+        height: 500px;
+        overflow-y: auto;
+        overflow-x: auto;
+        margin: 20px;
+        border: 1px solid #334155;
+        background-color: #111827;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 6px;
+        font-size: 12px;
+        border: 1px solid #334155;
+        text-align: left;
+    }
+
+    th {
+        background-color: #1e293b;
+        position: sticky;
+        top: 0;
+        cursor: pointer;
+    }
+
+    th:hover {
+        background-color: #334155;
+    }
+</style>
+</head>
+
+<body>
+
+<header>
+  PANEL DE SCOUTING - SCOTTISH PREMIERSHIP 2025/2026
+</header>
+
+<h2>Vista General</h2>
+
+<div class="filtro-minutos">
+  <label><strong>Filtrar por Minutos:</strong></label>
+
+  <div class="valores-minutos">
+    <span id="minValor">0</span> -
+    <span id="maxValor">0</span>
+  </div>
+
+  <div id="sliderMinutos"></div>
+</div>
+
+<div class="contenedor-tabla">
+    <table id="tabla_database"></table>
+</div>
+
+<h2>Comparación Radar</h2>
+
+<div class="barra-radar">
+  <div class="filtro-radar-box">
+    <label>Minutos</label>
+    <div style="font-size:12px; margin-bottom:6px;">
+        <span id="minRadarValor">0</span> - <span id="maxRadarValor">0</span>
+    </div>
+    <div id="sliderRadarMinutos"></div>
+  </div>
+
+  <div class="filtro-radar-box">
+    <label>Posición</label>
+    <select id="filtroPosicion"></select>
+  </div>
+</div>
+
+<!-- Separamos los select de jugadores fuera de la barra -->
+<div class="filtros-jugadores" style="display:flex; gap:20px; margin:20px;">
+  <div class="filtro-radar-box">
+    <label>Jugador 1</label>
+    <select id="jugador1"></select>
+  </div>
+
+  <div class="filtro-radar-box">
+    <label>Jugador 2</label>
+    <select id="jugador2"></select>
+  </div>
+</div>
+
+<div style="margin:20px; width:700px;">
+    <canvas id="radarChart"></canvas>
+</div>
+
+</div>
+
+<script>    
+let filtroMinRadar = { min: 0, max: 0 };
+let posicionesSeleccionadas = [];    
+let dataPercentiles = [];
+let radarChart;
+let dataOriginal = [];
+let dataFiltrada = [];
+
+let ordenActual = {
+    columna: null,
+    asc: true
+};
+
+const columnasDatabase = [
+    "jugador",
+    "equipo",
+    "posicion_1",
+    "edad",
+    "pie",
+    "altura",
+    "partidos_jugados",
+    "minutos_jugados",
+    "goles",
+    "asistencias",
+    "x_g",
+    "x_a"
+];
+
+const nombresColumnas = {
+    jugador: "Jugador",
+    equipo: "Equipo",
+    posicion_1: "Posición",
+    edad: "Edad",
+    pie: "Pie",
+    altura: "Altura",
+    partidos_jugados: "PJ",
+    minutos_jugados: "Minutos",
+    goles: "Goles",
+    asistencias: "Asistencias",
+    x_g: "xG",
+    x_a: "xA"
+};
+
+function renderTabla(data, tableId, columnas) {
+
+    const tabla = document.getElementById(tableId);
+    tabla.innerHTML = "";
+
+    if (!data || data.length === 0) return;
+
+    let headerRow = tabla.insertRow();
+
+    columnas.forEach(col => {
+        let th = document.createElement("th");
+        th.textContent = nombresColumnas[col] || col;
+        th.addEventListener("click", () => ordenarTabla(col));
+        headerRow.appendChild(th);
+    });
+
+    data.forEach(fila => {
+        let row = tabla.insertRow();
+        columnas.forEach(col => {
+            let cell = row.insertCell();
+            cell.textContent = fila[col] ?? "";
+        });
+    });
+}
+
+function ordenarTabla(columna) {
+
+    if (ordenActual.columna === columna) {
+        ordenActual.asc = !ordenActual.asc;
+    } else {
+        ordenActual.columna = columna;
+        ordenActual.asc = true;
+    }
+
+    dataFiltrada.sort((a, b) => {
+
+        let valorA = a[columna];
+        let valorB = b[columna];
+
+        let numA = parseFloat(valorA);
+        let numB = parseFloat(valorB);
+
+        if (!isNaN(numA) && !isNaN(numB)) {
+            return ordenActual.asc ? numA - numB : numB - numA;
+        } else {
+            return ordenActual.asc
+                ? String(valorA).localeCompare(String(valorB))
+                : String(valorB).localeCompare(String(valorA));
+        }
+    });
+
+    renderTabla(dataFiltrada, "tabla_database", columnasDatabase);
+}
+
+function configurarSlider() {
+
+    const minutos = dataOriginal.map(j => parseInt(j.minutos_jugados) || 0);
+
+    const minGlobal = Math.min(...minutos);
+    const maxGlobal = Math.max(...minutos);
+
+    const slider = document.getElementById('sliderMinutos');
+
+    noUiSlider.create(slider, {
+        start: [minGlobal, maxGlobal],
+        connect: true,
+        step: 1,
+        range: {
+            'min': minGlobal,
+            'max': maxGlobal
+        }
+    });
+
+    document.getElementById("minValor").textContent = minGlobal;
+    document.getElementById("maxValor").textContent = maxGlobal;
+
+    slider.noUiSlider.on('update', function (values) {
+
+        const minSeleccionado = Math.round(values[0]);
+        const maxSeleccionado = Math.round(values[1]);
+
+        document.getElementById("minValor").textContent = minSeleccionado;
+        document.getElementById("maxValor").textContent = maxSeleccionado;
+
+        dataFiltrada = dataOriginal.filter(j => {
+            const minutos = parseInt(j.minutos_jugados) || 0;
+            return minutos >= minSeleccionado && minutos <= maxSeleccionado;
+        });
+
+        renderTabla(dataFiltrada, "tabla_database", columnasDatabase);
+    });
+}
+
+fetch("spfl_database.json")
+  .then(response => response.json())
+  .then(data => {
+      dataOriginal = data;
+      dataFiltrada = [...data];
+      configurarSlider();
+      renderTabla(dataFiltrada, "tabla_database", columnasDatabase);
+  });
+fetch("spfl_percentiles.json")
+  .then(response => response.json())
+  .then(data => {
+
+      dataPercentiles = data;
+        cargarSelectores();
+        crearRadarInicial();
+        configurarSliderRadar();
+        configurarFiltroPosiciones();
+  });
+
+function cargarSelectores() {
+
+    const select1 = document.getElementById("jugador1");
+    const select2 = document.getElementById("jugador2");
+
+    dataPercentiles.forEach(jugador => {
+        let option1 = document.createElement("option");
+        option1.value = jugador.jugador;
+        option1.textContent = jugador.jugador;
+
+        let option2 = option1.cloneNode(true);
+
+        select1.appendChild(option1);
+        select2.appendChild(option2);
+    });
+
+    select1.addEventListener("change", actualizarRadar);
+    select2.addEventListener("change", actualizarRadar);
+
+    new TomSelect("#jugador1", {
+    create: false,
+    sortField: {
+        field: "text",
+        direction: "asc"
+    }
+});
+
+new TomSelect("#jugador2", {
+    create: false,
+    sortField: {
+        field: "text",
+        direction: "asc"
+    }
+});
+}
+
+const metricasRadar = [
+    { key: "percentile_duelos_aereos_ganados_90", label: "Duelos Aéreos" },
+    { key: "percentile_goles_excepto_los_penaltis_90", label: "Goles s/p" },
+    { key: "percentile_acciones_de_ataque_exitosas_90", label: "Acciones Ofensivas" },
+    { key: "percentile_x_g_90", label: "xG" },
+    { key: "percentile_asistencias_90", label: "Asistencias" },
+    { key: "percentile_duelos_atacantes_ganados_90", label: "Duelos Ofensivos" },
+    { key: "percentile_jugadas_claves_90", label: "Pases Claves" },
+    { key: "percentile_asist_remate_90", label: "Asist. de Remate" },
+    { key: "percentile_carreras_en_progresion_90", label: "Conducciones Progresivas" },
+    { key: "percentile_regates_exitosos_90", label: "Regates Exitosos" },
+    { key: "percentile_remates_90", label: "Remates" }
+];
+
+function crearRadarInicial() {
+
+    const ctx = document.getElementById('radarChart');
+
+    Chart.register(ChartDataLabels);
+radarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: metricasRadar.map(m => m.label),
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            scales: {
+                r: {
+                    min: 0,
+                    max: 100,
+                    ticks: {
+                        display: false
+                    },
+                    pointLabels: {
+                        color: "white"
+                    },
+                    grid: {
+                        color: "#334155"
+                    }
+                }
+            },
+            plugins: {
+    legend: {
+        labels: {
+            color: "white"
+        }
+    },
+        formatter: function(value) {
+            return Math.round(value);
+        }
+    }
+}
+        }
+    );
+}
+
+function actualizarRadar() {
+
+    const jugador1 = document.getElementById("jugador1").value;
+    const jugador2 = document.getElementById("jugador2").value;
+
+    const datos1 = dataPercentiles.find(j => j.jugador === jugador1);
+    const datos2 = dataPercentiles.find(j => j.jugador === jugador2);
+
+    if (!datos1 || !datos2) return;
+
+    radarChart.data.datasets = [
+    {
+        label: jugador1,
+        data: metricasRadar.map(m => datos1[m.key]),
+        borderColor: "#ffd50d",
+        backgroundColor: "rgba(255,213,13,0.2)",
+        pointBackgroundColor: "#ffd50d",
+        pointBorderColor: "#ffd50d",
+        datalabels: {
+            backgroundColor: "#ffd50d",
+            borderRadius: 50,
+            color: "#000000",
+            font: {
+                weight: "bold",
+                size: 10
+            },
+            padding: 4,
+            formatter: function(value) {
+                return Math.round(value);
+            }
+        }
+    },
+    {
+        label: jugador2,
+        data: metricasRadar.map(m => datos2[m.key]),
+        borderColor: "#3b82f6",
+        backgroundColor: "rgba(59,130,246,0.2)",
+        pointBackgroundColor: "#3b82f6",
+        pointBorderColor: "#3b82f6",
+        datalabels: {
+            backgroundColor: "#3b82f6",
+            borderRadius: 50,
+            color: "#ffffff",
+            font: {
+                weight: "bold",
+                size: 10
+            },
+            padding: 4,
+            formatter: function(value) {
+                return Math.round(value);
+            }
+        }
+    }
+];
+    radarChart.update();
+}
+function configurarSliderRadar() {
+
+    const minutos = dataPercentiles.map(j => parseInt(j.minutos_jugados) || 0);
+
+    const minGlobal = Math.min(...minutos);
+    const maxGlobal = Math.max(...minutos);
+
+    filtroMinRadar.min = minGlobal;
+    filtroMinRadar.max = maxGlobal;
+
+    const slider = document.getElementById('sliderRadarMinutos');
+
+    noUiSlider.create(slider, {
+        start: [minGlobal, maxGlobal],
+        connect: true,
+        step: 1,
+        range: {
+            min: minGlobal,
+            max: maxGlobal
+        }
+    });
+
+    document.getElementById("minRadarValor").textContent = minGlobal;
+    document.getElementById("maxRadarValor").textContent = maxGlobal;
+
+    slider.noUiSlider.on("update", function(values) {
+
+        filtroMinRadar.min = Math.round(values[0]);
+        filtroMinRadar.max = Math.round(values[1]);
+
+        document.getElementById("minRadarValor").textContent = filtroMinRadar.min;
+        document.getElementById("maxRadarValor").textContent = filtroMinRadar.max;
+
+        actualizarOpcionesRadar();
+    });
+}
+function configurarFiltroPosiciones() {
+
+    // --- POSICIÓN ---
+    const selectPos = document.getElementById("filtroPosicion");
+    const posicionesUnicas = [...new Set(dataPercentiles.map(j => j.posicion_1))];
+
+    posicionesUnicas.forEach(pos => {
+        let option = document.createElement("option");
+        option.value = pos;
+        option.textContent = pos;
+        selectPos.appendChild(option);
+    });
+
+    // Inicializamos TomSelect para los selectores de Jugador
+    const tsJugador1 = new TomSelect("#jugador1", {
+    create: false,
+    sortField: { field: "text", direction: "asc" },
+    dropdownParent: 'body',
+    maxItems: 1
+});
+
+const tsJugador2 = new TomSelect("#jugador2", {
+    create: false,
+    sortField: { field: "text", direction: "asc" },
+    dropdownParent: 'body',
+    maxItems: 1
+});
+
+const tsPosicion = new TomSelect("#filtroPosicion", {
+    create: false,
+    sortField: { field: "text", direction: "asc" },
+    dropdownParent: 'body',
+    maxItems: 10
+});
+    // Evento al cambiar posición
+    tsPosicion.on("change", function() {
+        posicionesSeleccionadas = tsPosicion.getValue(); // array de posiciones
+        actualizarOpcionesRadar();
+    });
+}
+
+function actualizarOpcionesRadar() {
+
+    const select1 = document.getElementById("jugador1").tomselect;
+    const select2 = document.getElementById("jugador2").tomselect;
+
+    // Limpiamos opciones actuales
+    select1.clearOptions();
+    select2.clearOptions();
+
+    const filtrados = dataPercentiles.filter(j => {
+        const minutos = parseInt(j.minutos_jugados) || 0;
+        const cumpleMinutos = minutos >= filtroMinRadar.min && minutos <= filtroMinRadar.max;
+        const cumplePosicion = posicionesSeleccionadas.length === 0 || posicionesSeleccionadas.includes(j.posicion_1);
+        return cumpleMinutos && cumplePosicion;
+    });
+
+    filtrados.forEach(j => {
+        select1.addOption({ value: j.jugador, text: j.jugador });
+        select2.addOption({ value: j.jugador, text: j.jugador });
+    });
+
+    // Refrescamos
+    select1.refreshOptions(false);
+    select2.refreshOptions(false);
+}
+</script>
+
+</body>
+</html>
+
