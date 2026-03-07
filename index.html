@@ -180,6 +180,17 @@
     th:hover {
         background-color: #334155;
     }
+
+    .contenedor-radares{
+    display:flex;
+    justify-content:center;
+    gap:40px;
+    margin:20px;
+}
+
+.radar-box{
+    width:600px;
+}
 </style>
 </head>
 
@@ -222,8 +233,16 @@
 
 </div>
 
-<div style="margin:20px; width:700px;">
-    <canvas id="radarChart"></canvas>
+<div class="contenedor-radares">
+
+    <div class="radar-box">
+        <canvas id="radarChart"></canvas>
+    </div>
+
+    <div class="radar-box">
+        <canvas id="radarDefensivo"></canvas>
+    </div>
+
 </div>
 
 </div>
@@ -234,6 +253,7 @@ let dataPercentiles = [];
 let radarChart;
 let dataOriginal = [];
 let dataFiltrada = [];
+let radarDefensivo;
 
 let ordenActual = {
     columna: null,
@@ -378,6 +398,7 @@ fetch("spfl_percentiles.json")
       dataPercentiles = data;
         cargarSelectores();
         crearRadarInicial();
+        crearRadarDefensivo();
         configurarSliderRadar();
         configurarFiltroPosiciones();
   });
@@ -440,11 +461,20 @@ const metricasRadar = [
     { key: "percentile_remates_90", label: "Remates" }
 ];
 
+const metricasDefensivas = [
+    { key: "percentile_padj_interceptacion_90", label: "Padj. Interceptaciones" },
+    { key: "percentile_padj_entrada_90", label: "Padj. Entradas" },
+    { key: "percentile_duelos_defensivos_ganados_90", label: "Duelos Defensivos" },
+    { key: "percentile_tiros_interceptados_90", label: "Tiros Bloqueados" },
+    { key: "percentile_duelos_aereos_ganados_90", label: "Duelos Aereos" }
+];
+
+    Chart.register(ChartDataLabels);
+
 function crearRadarInicial() {
 
     const ctx = document.getElementById('radarChart');
 
-    Chart.register(ChartDataLabels);
 radarChart = new Chart(ctx, {
         type: 'radar',
         data: {
@@ -487,6 +517,42 @@ legend: {
     );
 }
 
+function crearRadarDefensivo() {
+
+    const ctx = document.getElementById('radarDefensivo');
+
+
+    radarDefensivo = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: metricasDefensivas.map(m => m.label),
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            scales: {
+                r: {
+                    min: 0,
+                    max: 100,
+                    ticks: { display: false },
+                    pointLabels: { color: "white" },
+                    grid: { color: "#334155" }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: "top",
+                    labels: { color: "white" }
+                },
+                datalabels: {
+                    // estas opciones son default global si quieres, pero
+                    // para colores distintos por dataset conviene ponerlas en cada dataset
+                }
+            }
+        }
+    });
+}
+
 function actualizarRadar() {
 
     const jugador1 = document.getElementById("jugador1").value;
@@ -497,6 +563,7 @@ function actualizarRadar() {
 
     if (!datos1 || !datos2) return;
 
+    // Radar ofensivo
     radarChart.data.datasets = [
     {
         label: jugador1,
@@ -509,10 +576,7 @@ function actualizarRadar() {
             backgroundColor: "#ffd50d",
             borderRadius: 50,
             color: "#000000",
-            font: {
-                weight: "bold",
-                size: 10
-            },
+            font: { weight: "bold", size: 10 },
             padding: 4,
             formatter: function(value) {
                 return Math.round(value);
@@ -530,10 +594,7 @@ function actualizarRadar() {
             backgroundColor: "#3b82f6",
             borderRadius: 50,
             color: "#ffffff",
-            font: {
-                weight: "bold",
-                size: 10
-            },
+            font: { weight: "bold", size: 10 },
             padding: 4,
             formatter: function(value) {
                 return Math.round(value);
@@ -541,11 +602,51 @@ function actualizarRadar() {
         }
     }
 ];
+
+    // Radar defensivo
+radarDefensivo.data.datasets = [
+    {
+        label: jugador1,
+        data: metricasDefensivas.map(m => datos1[m.key]),
+        borderColor: "#ffd50d",
+        backgroundColor: "rgba(255,213,13,0.2)",
+        pointBackgroundColor: "#ffd50d",
+        pointBorderColor: "#ffd50d",
+        datalabels: {
+            backgroundColor: "#ffd50d",
+            borderRadius: 50,
+            color: "#000000",
+            font: { weight: "bold", size: 10 },
+            padding: 4,
+            formatter: function(value) { return Math.round(value); }
+        }
+    },
+    {
+        label: jugador2,
+        data: metricasDefensivas.map(m => datos2[m.key]),
+        borderColor: "#3b82f6",
+        backgroundColor: "rgba(59,130,246,0.2)",
+        pointBackgroundColor: "#3b82f6",
+        pointBorderColor: "#3b82f6",
+        datalabels: {
+            backgroundColor: "#3b82f6",
+            borderRadius: 50,
+            color: "#ffffff",
+            font: { weight: "bold", size: 10 },
+            padding: 4,
+            formatter: function(value) { return Math.round(value); }
+        }
+    }
+];
     radarChart.update();
+    radarDefensivo.update();
 }
 </script>
 
 </body>
 </html>
+
+
+
 
 
