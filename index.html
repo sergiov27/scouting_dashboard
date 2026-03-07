@@ -189,7 +189,17 @@
 }
 
 .radar-box{
-    width:600px;
+    width:400px;
+}
+
+.titulo-radar{
+    text-align:center;
+    font-weight:bold;
+    margin-bottom:10px;
+    padding-bottom:6px;
+    border-bottom:1px solid #334155;
+    color:#e5e7eb;
+    font-size:14px;
 }
 </style>
 </head>
@@ -247,11 +257,18 @@
 <div class="contenedor-radares">
 
     <div class="radar-box">
+        <div class="titulo-radar">Perfil Ofensivo</div>
         <canvas id="radarChart"></canvas>
     </div>
 
     <div class="radar-box">
+        <div class="titulo-radar">Perfil Defensivo</div>
         <canvas id="radarDefensivo"></canvas>
+    </div>
+    
+    <div class="radar-box">
+        <div class="titulo-radar">Perfil Creativo</div>
+        <canvas id="radarCreacion"></canvas>
     </div>
 
 </div>
@@ -468,7 +485,6 @@ const metricasRadar = [
     { key: "percentile_x_g_90", label: "xG" },
     { key: "percentile_asistencias_90", label: "Asistencias" },
     { key: "percentile_duelos_atacantes_ganados_90", label: "Duelos Ofensivos" },
-    { key: "percentile_jugadas_claves_90", label: "Pases Claves" },
     { key: "percentile_asist_remate_90", label: "Asist. de Remate" },
     { key: "percentile_carreras_en_progresion_90", label: "Conducciones Progresivas" },
     { key: "percentile_regates_exitosos_90", label: "Regates Exitosos" },
@@ -481,6 +497,15 @@ const metricasDefensivas = [
     { key: "percentile_duelos_defensivos_ganados_90", label: "Duelos Defensivos" },
     { key: "percentile_tiros_interceptados_90", label: "Tiros Bloqueados" },
     { key: "percentile_duelos_aereos_ganados_90", label: "Duelos Aereos" }
+];
+
+const metricasCreacion = [
+    { key: "percentile_pases_progresivos_precisos_90", label: "Pases Progresivos" },
+    { key: "percentile_pases_en_profundidad_precisos_90", label: "Pases en Profundidad" },
+    { key: "percentile_pases_largos_precisos_90", label: "Pases Largos" },
+    { key: "percentile_pases_ut_precisos_90", label: "Pases Último Tercio" },
+    { key: "percentile_centros_precisos_90", label: "Centros Precisos" },
+    { key: "percentile_jugadas_claves_90", label: "Jugadas Claves" }
 ];
 
     Chart.register(ChartDataLabels);
@@ -560,6 +585,39 @@ function crearRadarDefensivo() {
                 },
                 datalabels: {
 
+                }
+            }
+        }
+    });
+}
+
+let radarCreacion;
+
+function crearRadarCreacion() {
+
+    const ctx = document.getElementById('radarCreacion');
+
+    radarCreacion = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: metricasCreacion.map(m => m.label),
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            scales: {
+                r: {
+                    min: 0,
+                    max: 100,
+                    ticks: { display: false },
+                    pointLabels: { color: "white" },
+                    grid: { color: "#334155" }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: "top",
+                    labels: { color: "white" }
                 }
             }
         }
@@ -651,8 +709,48 @@ radarDefensivo.data.datasets = [
         }
     }
 ];
+
+radarCreacion.data.datasets = [
+{
+    label: jugador1,
+    data: metricasCreacion.map(m => datos1[m.key] ?? 0),
+    borderColor: "#ffd50d",
+    backgroundColor: "rgba(255,213,13,0.2)",
+    pointBackgroundColor: "#ffd50d",
+    pointBorderColor: "#ffd50d",
+    datalabels: {
+        backgroundColor: "#ffd50d",
+        borderRadius: 50,
+        color: "#000000",
+        font: { weight: "bold", size: 10 },
+        padding: 4,
+        formatter: function(value) {
+            return Math.round(value);
+        }
+    }
+},
+{
+    label: jugador2,
+    data: metricasCreacion.map(m => datos2[m.key] ?? 0),
+    borderColor: "#3b82f6",
+    backgroundColor: "rgba(59,130,246,0.2)",
+    pointBackgroundColor: "#3b82f6",
+    pointBorderColor: "#3b82f6",
+    datalabels: {
+        backgroundColor: "#3b82f6",
+        borderRadius: 50,
+        color: "#ffffff",
+        font: { weight: "bold", size: 10 },
+        padding: 4,
+        formatter: function(value) {
+            return Math.round(value);
+        }
+    }
+}
+];
     radarChart.update();
     radarDefensivo.update();
+    radarCreacion.update();
 }
 
 function cargarLiga(liga) {
@@ -697,6 +795,7 @@ function cargarLiga(liga) {
 
 crearRadarInicial();
 crearRadarDefensivo();
+crearRadarCreacion();
 
 document.getElementById("selectorLiga")
 .addEventListener("change", function(){
@@ -710,6 +809,7 @@ cargarLiga("escocia");
 
 </body>
 </html>
+
 
 
 
