@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Panel de Scouting</title>
+  <title>SCOUT PRO 360°</title>
 
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -197,10 +197,21 @@
 <body>
 
 <header>
-  PANEL DE SCOUTING - SCOTTISH PREMIERSHIP 2025/2026
+  SCOUT PRO 360°
 </header>
 
 <h2>Vista General</h2>
+<div class="filtro-minutos">
+
+<label><strong>Liga:</strong></label>
+
+<select id="selectorLiga">
+    <option value="escocia">Scottish Premiership</option>
+    <option value="chile">Primera División de Chile</option>
+    <option value="peru">Liga 1 de Perú</option>
+</select>
+
+</div>
 
 <div class="filtro-minutos">
   <label><strong>Filtrar por Minutos:</strong></label>
@@ -258,6 +269,24 @@ let radarDefensivo;
 let ordenActual = {
     columna: null,
     asc: true
+};
+
+const basesDatos = {
+
+    escocia: {
+        database: "spfl_database.json",
+        percentiles: "spfl_percentiles.json"
+    },
+
+    chile: {
+        database: "chile_database.json",
+        percentiles: "chile_percentiles.json"
+    }, 
+        peru: {
+        database: "peru_database.json",
+        percentiles: "peru_percentiles.json"
+    }
+
 };
 
 const columnasDatabase = [
@@ -353,6 +382,12 @@ function configurarSlider() {
 
     const slider = document.getElementById('sliderMinutos');
 
+    // 🔧 destruir slider si ya existe
+    if (slider.noUiSlider) {
+        slider.noUiSlider.destroy();
+    }
+
+    // 🔧 crear slider nuevo
     noUiSlider.create(slider, {
         start: [minGlobal, maxGlobal],
         connect: true,
@@ -382,27 +417,6 @@ function configurarSlider() {
         renderTabla(dataFiltrada, "tabla_database", columnasDatabase);
     });
 }
-
-fetch("spfl_database.json")
-  .then(response => response.json())
-  .then(data => {
-      dataOriginal = data;
-      dataFiltrada = [...data];
-      configurarSlider();
-      renderTabla(dataFiltrada, "tabla_database", columnasDatabase);
-  });
-fetch("spfl_percentiles.json")
-  .then(response => response.json())
-  .then(data => {
-
-      dataPercentiles = data;
-        cargarSelectores();
-        crearRadarInicial();
-        crearRadarDefensivo();
-        configurarSliderRadar();
-        configurarFiltroPosiciones();
-  });
-
 function cargarSelectores() {
 
     const select1 = document.getElementById("jugador1");
@@ -545,8 +559,7 @@ function crearRadarDefensivo() {
                     labels: { color: "white" }
                 },
                 datalabels: {
-                    // estas opciones son default global si quieres, pero
-                    // para colores distintos por dataset conviene ponerlas en cada dataset
+
                 }
             }
         }
@@ -567,7 +580,7 @@ function actualizarRadar() {
     radarChart.data.datasets = [
     {
         label: jugador1,
-        data: metricasRadar.map(m => datos1[m.key]),
+        data: metricasRadar.map(m => datos1[m.key] ?? 0),
         borderColor: "#ffd50d",
         backgroundColor: "rgba(255,213,13,0.2)",
         pointBackgroundColor: "#ffd50d",
@@ -585,7 +598,7 @@ function actualizarRadar() {
     },
     {
         label: jugador2,
-        data: metricasRadar.map(m => datos2[m.key]),
+        data: metricasRadar.map(m => datos2[m.key] ?? 0),
         borderColor: "#3b82f6",
         backgroundColor: "rgba(59,130,246,0.2)",
         pointBackgroundColor: "#3b82f6",
@@ -607,7 +620,7 @@ function actualizarRadar() {
 radarDefensivo.data.datasets = [
     {
         label: jugador1,
-        data: metricasDefensivas.map(m => datos1[m.key]),
+        data: metricasDefensivas.map(m => datos1[m.key] ?? 0),
         borderColor: "#ffd50d",
         backgroundColor: "rgba(255,213,13,0.2)",
         pointBackgroundColor: "#ffd50d",
@@ -623,7 +636,7 @@ radarDefensivo.data.datasets = [
     },
     {
         label: jugador2,
-        data: metricasDefensivas.map(m => datos2[m.key]),
+        data: metricasDefensivas.map(m => datos2[m.key] ?? 0),
         borderColor: "#3b82f6",
         backgroundColor: "rgba(59,130,246,0.2)",
         pointBackgroundColor: "#3b82f6",
@@ -641,10 +654,63 @@ radarDefensivo.data.datasets = [
     radarChart.update();
     radarDefensivo.update();
 }
+
+function cargarLiga(liga) {
+
+    const rutas = basesDatos[liga];
+
+    Promise.all([
+        fetch(rutas.database).then(r => r.json()),
+        fetch(rutas.percentiles).then(r => r.json())
+    ])
+
+    .then(([database, percentiles]) => {
+
+        dataOriginal = database;
+        dataFiltrada = [...database];
+        dataPercentiles = percentiles;
+
+        renderTabla(dataFiltrada, "tabla_database", columnasDatabase);
+
+        configurarSlider();
+
+        const select1 = document.getElementById("jugador1");
+        const select2 = document.getElementById("jugador2");
+
+        if (select1.tomselect) select1.tomselect.destroy();
+        if (select2.tomselect) select2.tomselect.destroy();
+
+        select1.innerHTML = "";
+        select2.innerHTML = "";
+
+        cargarSelectores();
+
+        radarChart.data.datasets = [];
+        radarDefensivo.data.datasets = [];
+
+        radarChart.update();
+        radarDefensivo.update();
+
+        actualizarRadar(); 
+    });
+}
+
+crearRadarInicial();
+crearRadarDefensivo();
+
+document.getElementById("selectorLiga")
+.addEventListener("change", function(){
+
+    cargarLiga(this.value);
+
+});
+
+cargarLiga("escocia");
 </script>
 
 </body>
 </html>
+
 
 
 
