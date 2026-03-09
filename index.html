@@ -32,21 +32,47 @@
         font-size: 18px;
         color: #ffd50d;
     }
+/* ===== NAVBAR ===== */
 
+.navbar {
+    background: linear-gradient(to right, #000000 0%, #0f172a 50%, #1e293b 100%);
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 25px;
+}
+
+.logo {
+    font-weight: bold;
+    font-size: 18px;
+    color: #ffd50d;
+}
+
+.navbar nav a {
+    color: #e5e7eb;
+    text-decoration: none;
+    margin-left: 20px;
+    font-size: 14px;
+}
+
+.navbar nav a:hover {
+    color: #ffd50d;
+}
     h2 {
         padding-left: 20px;
     }
 
     /* ===== FILTRO MINUTOS GENERAL ===== */
 
-    .filtro-minutos {
-        margin: 20px;
-        padding: 15px;
-        background-color: #1e293b;
-        border-radius: 6px;
-        border: 1px solid #334155;
-        width: 350px;
-    }
+.filtro-minutos {
+    padding: 12px;
+    background-color: #1e293b;
+    border-radius: 6px;
+    border: 1px solid #334155;
+    width: 100%;
+    box-sizing: border-box;
+}
 
     .valores-minutos {
         margin: 10px 0;
@@ -62,11 +88,20 @@
         background: #ffd50d;
     }
 
-    .noUi-handle {
-        background: #1e293b;
-        border: 2px solid #ffd50d;
-        box-shadow: none;
-    }
+.noUi-handle {
+    width: 20px;          /* ancho del círculo */
+    height: 20px;         /* alto del círculo */
+    border-radius: 100%;   /* hace que sea perfectamente circular */
+    background: #1e293b;
+    border: 2px solid #ffd50d;
+    box-shadow: none;
+    top: -6px;            /* ajusta la posición vertical si es necesario */
+}
+
+.noUi-handle:before,
+.noUi-handle:after {
+    display: none;
+}
 
 /* ===== BARRA HORIZONTAL RADAR ===== */
 .barra-radar {
@@ -201,41 +236,102 @@
     color:#e5e7eb;
     font-size:14px;
 }
+
+/* ===== LAYOUT TABLA + FILTROS ===== */
+
+.seccion-tabla {
+    display: flex;
+    gap: 20px;
+    margin: 20px;
+    align-items: flex-start;
+}
+
+.panel-filtros {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 260px;
+    background-color: #111827;
+    padding: 15px;
+    border: 1px solid #334155;
+    border-radius: 6px;
+}
+
+.tabla-wrapper {
+    flex: 1;
+}
+
+.logo-img {
+    height: 40px;           /* ajusta la altura del logo */
+    width: auto;            /* mantiene proporción */
+    margin-right: 10px;     /* espacio entre logo y texto */
+    vertical-align: middle; /* alinea con el texto */
+}
+
 </style>
 </head>
 
 <body>
 
-<header>
+<header class="navbar">
+
+<div class="logo">
+  <img src="logo_nobg.png" alt="Logo" class="logo-img">
   SCOUT PRO 360°
+</div>
+
+  <nav>
+    <a href="index.html">Dashboard</a>
+    <a href="ficha_individual.html">Ficha Individual</a>
+    <a href="roles.html">Roles</a>
+  </nav>
+
 </header>
 
 <h2>Vista General</h2>
-<div class="filtro-minutos">
 
-<label><strong>Liga:</strong></label>
+<div class="seccion-tabla">
 
-<select id="selectorLiga">
-    <option value="escocia">Scottish Premiership</option>
-    <option value="chile">Primera División de Chile</option>
-    <option value="peru">Liga 1 de Perú</option>
-</select>
+    <!-- PANEL IZQUIERDO FILTROS -->
+    <div class="panel-filtros">
 
-</div>
+        <div class="filtro-minutos">
 
-<div class="filtro-minutos">
-  <label><strong>Filtrar por Minutos:</strong></label>
+            <label><strong>Liga:</strong></label>
 
-  <div class="valores-minutos">
-    <span id="minValor">0</span> -
-    <span id="maxValor">0</span>
-  </div>
+            <select id="selectorLiga">
+                <option value="escocia">Escocia - Scottish Premiership</option>
+                <option value="chile">Chile - Primera División</option>
+                <option value="peru">Perú - Primera División</option>
+            </select>
 
-  <div id="sliderMinutos"></div>
-</div>
+        </div>
 
-<div class="contenedor-tabla">
-    <table id="tabla_database"></table>
+        <div class="filtro-minutos">
+
+            <label><strong>Filtrar por Minutos:</strong></label>
+
+            <div class="valores-minutos">
+                <span id="minValor">0</span> -
+                <span id="maxValor">0</span>
+            </div>
+
+            <div id="sliderMinutos"></div>
+
+        </div>
+
+    </div>
+
+    <!-- TABLA DERECHA -->
+
+    <div class="tabla-wrapper">
+
+        <div class="contenedor-tabla">
+            <table id="tabla_database"></table>
+        </div>
+
+    </div>
+
 </div>
 
 <h2>Comparación Radar</h2>
@@ -805,6 +901,12 @@ document.getElementById("selectorLiga")
 });
 
 cargarLiga("escocia");
+new TomSelect("#selectorLiga", {
+    create: false,
+    maxItems: 1,
+    sortField: { field: "text", direction: "asc" },
+    dropdownParent: "body"
+});
 </script>
 
 </body>
