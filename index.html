@@ -69,7 +69,7 @@
     padding: 12px;
     background-color: #1e293b;
     border-radius: 6px;
-    border: 1px solid #334155;
+    border: 1px solid black;
     width: 100%;
     box-sizing: border-box;
 }
@@ -80,7 +80,7 @@
     }
 
     #sliderMinutos {
-        margin-top: 15px;
+        margin-top: 5px;
     }
 
     /* Slider estilo */
@@ -89,9 +89,9 @@
     }
 
 .noUi-handle {
-    width: 20px;          /* ancho del círculo */
-    height: 20px;         /* alto del círculo */
-    border-radius: 100%;   /* hace que sea perfectamente circular */
+    width: 5px;          /* ancho del círculo */
+    height: 5px;         /* alto del círculo */
+    border-radius: 50%;   /* hace que sea perfectamente circular */
     background: #1e293b;
     border: 2px solid #ffd50d;
     box-shadow: none;
@@ -268,6 +268,41 @@
     vertical-align: middle; /* alinea con el texto */
 }
 
+/* Caja del filtro */
+.filtro-posicion {
+    margin: 20px;
+    padding: 15px;
+    background-color: #1e293b; /* mismo azul oscuro que otros filtros */
+    border-radius: 6px;
+    border: 1px solid #334155;
+    width: 350px;
+}
+
+/* Label dentro de la caja */
+.filtro-posicion label {
+    color: #0f172a;
+    font-size: 13px;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.filtro-posicion select option {
+    background-color: #0f172a;
+    color: white;
+}
+
+/* Select dentro de la caja */
+#selectorPosicion {
+    width: 100%;
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid #334155;
+    background-color: #0f172a;
+    color: whitesmoke;
+    appearance: none;
+}
+
+
 </style>
 </head>
 
@@ -319,6 +354,19 @@
             <div id="sliderMinutos"></div>
 
         </div>
+
+        <div class="filtro-minutos">
+  <label><strong>Filtrar por Posición:</strong></label>
+  <select id="selectorPosicion">
+    <option value="todos">Todos</option>
+    <option value="delantero">Delantero</option>
+    <option value="mediocentro">Mediocentro</option>
+    <option value="defensa">Defensa Central</option>
+    <option value="extremo">Extremo</option>
+    <option value="lateral">Lateral</option>
+    <option value="Mediocentro Defensivo">Mediocentro Defensivo</option>
+  </select>
+</div>
 
     </div>
 
@@ -530,6 +578,28 @@ function configurarSlider() {
         renderTabla(dataFiltrada, "tabla_database", columnasDatabase);
     });
 }
+
+document.getElementById("selectorPosicion").addEventListener("change", function() {
+    const posicion = this.value.toLowerCase();
+
+    dataFiltrada = dataOriginal.filter(j => {
+        const minutos = parseInt(j.minutos_jugados) || 0;
+        const cumpleMinutos = minutos >= parseInt(document.getElementById("minValor").textContent)
+                             && minutos <= parseInt(document.getElementById("maxValor").textContent);
+
+        const posicionJugador = (j.posicion_1 || "").toLowerCase();
+
+        // "todos" muestra todo, si no, busca coincidencia parcial
+        const cumplePosicion = posicion === "todos" || posicionJugador.includes(posicion);
+
+        return cumpleMinutos && cumplePosicion;
+    });
+
+    renderTabla(dataFiltrada, "tabla_database", columnasDatabase);
+});
+
+    renderTabla(dataFiltrada, "tabla_database", columnasDatabase);
+
 function cargarSelectores() {
 
     const select1 = document.getElementById("jugador1");
@@ -911,7 +981,6 @@ new TomSelect("#selectorLiga", {
 
 </body>
 </html>
-
 
 
 
